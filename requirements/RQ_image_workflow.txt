@@ -1,0 +1,87 @@
+# Susi Image Workflow Requirements
+
+## 1. Functional Requirements
+
+### 1.1. Image Discovery
+- The system shall monitor a configured OneDrive folder for new image files.
+- Only images with supported extensions (.jpg, .jpeg, .png, .bmp, .gif) shall be considered.
+- The system shall skip images that have already been processed.
+
+### 1.2. Image Download
+- The system shall download discovered images from OneDrive to a local directory.
+- The system shall handle download errors and log or notify as appropriate.
+
+### 1.3. Metadata Extraction
+- The system shall extract metadata (at minimum: title, comment) from each downloaded image.
+- The system shall handle missing or malformed metadata gracefully, using defaults or skipping as needed.
+
+### 1.4. Post Caption Generation
+- The system shall generate a post caption using a configurable template and the extracted metadata.
+- The system shall support template customization via configuration.
+
+### 1.5. S3 Upload
+- The system shall upload the downloaded image to a configured AWS S3 bucket.
+- The system shall use credentials and region from configuration or environment variables.
+- The system shall handle upload errors and abort the workflow for that image if upload fails.
+
+### 1.6. Instagram Posting
+- The system shall post the uploaded image to Instagram using the Instagram Graph API.
+- The system shall use access token and user ID from configuration or environment variables.
+- The system shall handle API errors and abort the workflow for that image if posting fails.
+
+### 1.7. Post-Processing
+- The system shall move successfully processed images to a designated 'processed' folder in OneDrive, appending a timestamp to the filename.
+- The system shall remove the local copy of the image after successful posting and processing.
+
+## 2. Integration Requirements
+
+### 2.1. OneDrive Integration
+- The system shall use OAuth2 authentication for OneDrive API access.
+- The system shall refresh tokens as needed and handle token expiration.
+
+### 2.2. S3 Integration
+- The system shall use the AWS SDK (boto3) for S3 uploads.
+- The system shall construct and return a public URL for each uploaded image.
+
+### 2.3. Instagram Integration
+- The system shall use the Instagram Graph API for media creation and publishing.
+- The system shall handle both creation and publishing steps, checking for errors at each stage.
+
+### 2.4 Retry Logic
+- The system shall implement retry logic with exponential backoff for all transient errors (e.g., network, API, or service unavailability) during OneDrive, S3, and Instagram operations.
+- The number of retries, initial delay, and backoff multiplier shall be configurable.
+- The system shall not retry on permanent errors (e.g., authentication failure, invalid configuration).
+- All retry attempts and final failures shall be logged for auditability.
+
+## 3. Error Handling & Notifications
+
+### 3.1. Error Handling
+- The system shall catch and log all errors at each workflow step.
+- If any step fails for an image, the workflow for that image shall abort and not proceed to subsequent steps.
+- The system shall not mark an image as processed if any step fails.
+
+### 3.2. Email Notifications
+- The system shall send a confirmation email upon successful posting of each image.
+- The system shall send an error email if any step fails, including details of the error and the affected image.
+- The system shall handle email sending errors gracefully and log them.
+
+## 4. Configuration & Security
+
+- All credentials (OneDrive, AWS, Instagram, email) shall be loaded from environment variables or a secure config file.
+- No credentials or secrets shall be hardcoded in the source code.
+- The system shall support configuration of all folder paths, templates, and notification recipients.
+
+## 5. Testability & Maintainability
+
+- All external dependencies (network, APIs, email, file I/O) shall be mockable for unit and integration testing.
+- The system shall provide clear logging at each step for debugging and auditability.
+- The workflow shall be modular, with each step implemented as a separate function or class for ease of testing and extension.
+
+## 6. Extensibility
+
+- The system shall be designed to allow easy addition of new social platforms or storage backends in the future.
+- The workflow shall support additional metadata fields and template variables as needed.
+
+---
+
+This requirements document is derived from the current test suite and codebase. Update as needed to reflect new features or changes in workflow.

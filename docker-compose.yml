@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  susi:
+    build: .
+    volumes:
+      - ./susi:/app/susi
+      - ./logs:/app/logs
+      - ./config.yaml:/app/config.yaml
+    environment:
+      - TZ=Europe/Berlin
+    restart: unless-stopped

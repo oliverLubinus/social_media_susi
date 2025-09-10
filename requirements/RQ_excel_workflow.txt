@@ -1,0 +1,76 @@
+# Susi Excel Workflow Requirements
+
+## 1. Functional Requirements
+
+### 1.1. Excel Row Discovery
+- The system shall monitor a configured Excel file for new, unprocessed rows.
+- Only rows not marked as processed shall be considered for workflow execution.
+
+### 1.2. News Fetching
+- The system shall fetch relevant news articles for each row using the NewsAPI, based on the 'Content' and 'Target Group' fields.
+- The system shall handle NewsAPI errors gracefully and abort processing for the affected row if news cannot be fetched.
+
+### 1.3. LLM Post Generation
+- The system shall generate Instagram and LinkedIn post captions using a generative AI model, the row data, and fetched news articles.
+- The system shall handle LLM errors gracefully, using a fallback caption or aborting as appropriate.
+
+### 1.4. Writing to Excel
+- The system shall write the generated Instagram and LinkedIn posts back to the corresponding columns in the Excel file.
+- The system shall mark each processed row as 'processed' after successful post generation and writing.
+- The system shall handle Excel write errors gracefully and abort processing for the affected row if writing fails.
+
+### 1.5. Row Processing Logic
+- The system shall skip rows with missing required fields (e.g., 'Content' or 'Target Group').
+- The system shall process multiple rows in a single run, handling each row independently.
+
+## 2. Integration Requirements
+
+### 2.1. Excel Integration
+- The system shall use the Microsoft Graph API for reading and writing Excel files stored in OneDrive.
+- The system shall use OAuth2 authentication for API access and handle token refresh as needed.
+
+### 2.2. NewsAPI Integration
+- The system shall use the NewsAPI for fetching news articles, using an API key from configuration or environment variables.
+
+### 2.3. LLM Integration
+- The system shall use a configurable LLM (local or cloud) for post generation.
+- The system shall support mocking or patching the LLM for testing.
+
+### 2.4 Retry Logic
+- The system shall implement retry logic with exponential backoff for all transient errors (e.g., network, API, or service unavailability) during Excel, NewsAPI, and LLM operations.
+- The number of retries, initial delay, and backoff multiplier shall be configurable.
+- The system shall not retry on permanent errors (e.g., authentication failure, invalid configuration).
+- All retry attempts and final failures shall be logged for auditability.
+
+## 3. Error Handling & Notifications
+
+### 3.1. Error Handling
+- The system shall catch and log all errors at each workflow step.
+- If any step fails for a row, the workflow for that row shall abort and not proceed to subsequent steps.
+- The system shall not mark a row as processed if any step fails.
+
+### 3.2. Email Notifications
+- The system shall send a confirmation email upon successful processing of each row.
+- The system shall send an error email if any step fails, including details of the error and the affected row.
+- The system shall handle email sending errors gracefully and log them.
+
+## 4. Configuration & Security
+
+- All credentials (OneDrive, NewsAPI, email, LLM) shall be loaded from environment variables or a secure config file.
+- No credentials or secrets shall be hardcoded in the source code.
+- The system shall support configuration of all file paths, templates, and notification recipients.
+
+## 5. Testability & Maintainability
+
+- All external dependencies (network, APIs, email, file I/O) shall be mockable for unit and integration testing.
+- The system shall provide clear logging at each step for debugging and auditability.
+- The workflow shall be modular, with each step implemented as a separate function or class for ease of testing and extension.
+
+## 6. Extensibility
+
+- The system shall be designed to allow easy addition of new post types, social platforms, or data sources in the future.
+- The workflow shall support additional fields and template variables as needed.
+
+---
+
+This requirements document is derived from the current test suite and codebase. Update as needed to reflect new features or changes in workflow.
