@@ -21,7 +21,7 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
       - name: Ensure logs directory exists
-        run: mkdir -p susi/logs
+        run: mkdir -p logs
       - name: Run tests
         run: |
           pytest
