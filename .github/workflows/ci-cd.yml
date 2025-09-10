@@ -28,5 +28,5 @@ jobs:
         env: 
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
       # Optionally build Docker image
-      - name: Build Docker image
-        run: docker build -t social-media-susi .
+      #- name: Build Docker image
+        #run: docker build -t social-media-susi .
