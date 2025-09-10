@@ -25,6 +25,8 @@ jobs:
       - name: Run tests
         run: |
           pytest
+        env: 
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
       # Optionally build Docker image
       - name: Build Docker image
         run: docker build -t social-media-susi .
