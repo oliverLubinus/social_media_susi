@@ -16,7 +16,7 @@ Error/warning message hints:
     - For new integration logic, update or add tests to match expected behavior.
 """
 from unittest.mock import patch, MagicMock
-from app.services.s3 import upload_file_to_s3
+from susi.services.s3 import upload_file_to_s3
 from susi.instagram import post_to_instagram
 import os
 import unittest
