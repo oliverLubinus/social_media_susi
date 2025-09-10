@@ -27,7 +27,7 @@ class TestS3Upload(unittest.TestCase):
 
     Mocks boto3 S3 client to simulate upload success and failure.
     """
-    @patch('.services.s3.boto3.client')
+    @patch('susi.services.s3.boto3.client')
     def test_upload_file_to_s3_success(self, mock_boto_client):
         """
         Test: upload_file_to_s3 returns a URL on successful upload.
@@ -43,7 +43,7 @@ class TestS3Upload(unittest.TestCase):
         self.assertIn(bucket, url)
         self.assertIn(region, url)
 
-    @patch('.services.s3.boto3.client')
+    @patch('susi.services.s3.boto3.client')
     def test_upload_file_to_s3_failure(self, mock_boto_client):
         """
         Test: upload_file_to_s3 returns None on upload failure.
