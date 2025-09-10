@@ -1,4 +1,3 @@
-
 # Susi - Social Media Agent
 
 Susi is a modular, extensible social media automation agent. She monitors a OneDrive folder for new images, extracts metadata, generates captions, uploads images to S3, and posts to Instagram (and soon other platforms) using a unified workflow. Susi is designed for easy extension to new use cases and platforms.
@@ -74,6 +73,22 @@ docker run --env-file .env susi
 - **Environment variables not loaded:**
 	- Make sure you are running the app from the project root and `.env` exists.
 	- Use `print(os.environ)` in `main.py` to debug environment loading.
+
+## OneDrive Authentication: Creating and Using token_result.json
+
+To enable Susi to access OneDrive, you must authenticate and generate a token file:
+
+1. **Run the OAuth flow locally:**
+   - Run the onedrive_auth.py file on your local machine (not in Docker) and follow the prompts to log in to your Microsoft account or copy&paste the token from the browser url (everything between code= and &session) into the terminal where you ran the script.
+   - The authentication process will generate `token_result.json` and `token_cache.bin` in your project directory.
+
+2. **Copy the token files:**
+   - Place `token_result.json` and `token_cache.bin` in the root of your project (next to your Dockerfile).
+
+3. **Build and run the Docker container:**
+   - The Dockerfile is set up to copy these files into the container so Susi can use the access token for OneDrive API calls.
+
+**Note:** If your token expires or is revoked, repeat the OAuth flow to generate new token files.
 
 ## Contributing
 Pull requests and feature suggestions are welcome! Please open an issue or PR.
