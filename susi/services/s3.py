@@ -15,8 +15,7 @@ def upload_file_to_s3(
     object_name: Optional[str] = None,
     aws_access_key_id: Optional[str] = None,
     aws_secret_access_key: Optional[str] = None,
-    region_name: Optional[str] = None,
-    profile_name: Optional[str] = None
+    region_name: Optional[str] = None
 ) -> Optional[str]:
     """
     Upload a file to an AWS S3 bucket and return its public URL.
@@ -45,17 +44,15 @@ def upload_file_to_s3(
     if object_name is None:
         object_name = os.path.basename(file_path)
 
-    # Use AWS profile if provided, otherwise use explicit credentials or default config
-    if profile_name:
-        session = boto3.Session(profile_name=profile_name)
-        s3_client = session.client('s3', region_name=region_name)
-    else:
-        s3_client = boto3.client(
-            's3',
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            region_name=region_name
-        )
+    # Always use environment variables or explicit keys for credentials.
+    # For Docker/production, set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION as env vars.
+    # If aws_access_key_id and aws_secret_access_key are None, boto3 will use environment variables or IAM roles.
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        region_name=region_name
+    )
 
     try:
         # Upload the file to S3 with content type set to image/jpeg

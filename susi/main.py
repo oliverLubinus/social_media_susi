@@ -323,8 +323,7 @@ def process_images(images: list = None, seen_ids: set = None, poster=None) -> No
                     object_name=None,
                     aws_access_key_id=aws_cfg.get('access_key_id'),
                     aws_secret_access_key=aws_cfg.get('secret_access_key'),
-                    region_name=aws_cfg['region'],
-                    profile_name=aws_cfg.get('profile')
+                    region_name=aws_cfg['region']
                 )
                 if not s3_url:
                     raise S3UploadError(f"upload_file_to_s3 returned None for {local_path}")
@@ -478,4 +477,4 @@ def main(trigger_mode: str = "polling") -> None:
 
 if __name__ == "__main__":
     # Set trigger_mode to "polling" or "schedule" as needed
-    main(trigger_mode="polling")
+    main(trigger_mode="schedule")

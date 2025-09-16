@@ -7,4 +7,5 @@ COPY token_result.json ./
 COPY token_cache.bin ./
 COPY config.yaml ./
 COPY logs/ ./logs/
+COPY client_secret.json ./
 CMD ["python", "-m", "susi.main"]
