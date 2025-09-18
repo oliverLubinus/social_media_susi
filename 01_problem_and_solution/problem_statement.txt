@@ -1,0 +1,14 @@
+**Problem Statement: Social Media Content Automation**
+
+In today's digital landscape, organizations and individuals must maintain an active and engaging presence across multiple 
+social media platforms. This requires frequent posting of high-quality, relevant content, which is time-consuming and error-prone 
+when managed manually. The process often involves monitoring content sources (such as cloud storage or spreadsheets), generating 
+creative captions, uploading media to hosting services, and posting to various social networks—all while ensuring consistency, 
+compliance, and timely delivery.
+
+The problem is further complicated by the need to coordinate between different APIs (e.g., OneDrive, AWS S3, Instagram), handle 
+authentication and token management, and provide robust error handling and notifications. Manual workflows are inefficient, 
+do not scale, and are prone to missed opportunities or mistakes.
+
+This project addresses these challenges by providing an automated, extensible agent that streamlines the end-to-end workflow of 
+social media content creation and publishing. It enables users to monitor content sources, generate and post content automatically, 

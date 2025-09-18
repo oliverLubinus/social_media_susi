@@ -8,7 +8,7 @@ from susi.retry_utils import retry
 
 from typing import Optional
 
-@retry(Exception, tries=3, delay=2, backoff=2, logger=logging)
+@retry(Exception, tries=3, delay=2, backoff=2, logger=logging.getLogger(__name__))
 def upload_file_to_s3(
     file_path: str,
     bucket_name: str,

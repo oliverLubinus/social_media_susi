@@ -1,0 +1,68 @@
+Feature Description: Social Media Automation System
+
+This document provides a detailed overview of the features implemented in the "social-media-susi" project. 
+Each feature is designed with extensibility, reliability, and operational transparency in mind, supporting 
+the automation of social media content workflows for both individual and organizational use cases.
+
+1. Automated Content Monitoring
+------------------------------
+- The system continuously monitors a designated OneDrive folder for new images and an Excel spreadsheet for new content topics.
+- Integration with Microsoft Graph API enables secure, robust access to OneDrive resources, supporting token refresh and error handling.
+- The monitoring logic is modular, allowing for the addition of new content sources (e.g., Google Drive, Dropbox) with minimal changes.
+
+2. Metadata Extraction and Caption Generation
+--------------------------------------------
+- Upon detection of new images, the system extracts metadata such as title, comments, and EXIF data.
+- Captions are generated using a hybrid approach: template-based logic for consistency and generative AI (LLMs) for creativity and contextual relevance.
+- The caption generation module is extensible, supporting the integration of new AI models or custom templates as business needs evolve.
+
+3. Cloud Storage Integration (AWS S3)
+-------------------------------------
+- Images are uploaded to AWS S3 for reliable, scalable, and public hosting.
+- The integration uses boto3 and supports both explicit credentials and IAM roles, with all secrets managed via environment variables.
+- The upload process includes content-type management, error handling, and retry logic to ensure robustness.
+
+4. Multi-Platform Social Media Posting
+--------------------------------------
+- The system posts content to Instagram using a dedicated, modular poster class.
+- The architecture supports easy extension to additional platforms (e.g., LinkedIn, X, personal blogs) by implementing new poster modules that inherit from a common interface.
+- Posting logic includes error handling, logging, and the ability to adapt to platform-specific API changes.
+
+5. Excel-Driven Topic Workflow
+------------------------------
+- The agent processes an Excel file containing new content topics, target groups, and other metadata.
+- For each unprocessed row, the system generates both Instagram and LinkedIn posts, writes the results back to the Excel file, and marks the row as processed.
+- For each topic, the system queries a news API to fetch relevant articles, enriching the generated posts with up-to-date, contextually relevant information.
+- This workflow enables content teams to plan and manage campaigns in a familiar spreadsheet format while leveraging automation for execution and content enrichment.
+
+6. Workflow Orchestration and Scheduling
+----------------------------------------
+- The main workflow is orchestrated in Python, supporting both polling (continuous monitoring) and scheduled execution (using the schedule library).
+- Scheduling is fully configurable via YAML and environment variables, supporting complex business requirements (e.g., different posting times for different platforms).
+- The orchestration layer includes robust logging (file and console, with rotation), error handling, and notification triggers.
+
+7. Error Handling and Notification
+----------------------------------
+- All critical operations are wrapped with retry logic and exception handling to maximize reliability.
+- Errors and workflow events trigger email notifications, using either SMTP or the Gmail API, depending on configuration.
+- Notification logic is modular, allowing for future integration with other alerting systems (e.g., Slack, Teams).
+
+8. Configuration Management and Extensibility
+---------------------------------------------
+- All system settings are managed via YAML configuration files and environment variables, with support for .env files (python-dotenv).
+- The configuration system supports variable substitution, enabling secure and flexible management of secrets and environment-specific settings.
+- The modular design allows for rapid extension of the system to new content sources, platforms, or workflow steps.
+
+9. Automated Testing and Validation
+-----------------------------------
+- The project includes a comprehensive suite of automated tests covering core workflows, integrations, and error handling scenarios.
+- Tests are designed for both local execution and CI/CD pipelines, supporting continuous validation of system integrity.
+- The testing framework is extensible, enabling the addition of new test cases as features evolve.
+
+10. Containerization and Deployment
+-----------------------------------
+- The entire system is containerized using Docker, ensuring consistent environments across development, testing, and production.
+- The Dockerfile and docker-compose.yml support multi-stage builds, environment variable injection, and volume management for logs and data.
+- The system is prepared for CI/CD with GitHub Actions, enabling automated builds, tests, and deployments to target environments.
+
+These features collectively deliver a robust, scalable, and extensible solution for automated social media management, designed to meet the needs of demanding enterprise environments as well as individual users seeking operational efficiency and reliability.

@@ -9,7 +9,6 @@ build/
 
 # Environment and config
 .env
-*.env
 config.yaml  # if it contains secrets (otherwise, document this for your team)
 
 # OAuth and credentials

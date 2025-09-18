@@ -19,6 +19,7 @@ Error/warning message hints:
     - If you see 'Failed to write' or 'Failed to generate', check the LLM, Excel, or API logs for details.
 """
 
+
 from .onedrive_auth import get_access_token
 from dotenv import load_dotenv
 from string import Template
@@ -41,6 +42,7 @@ import schedule
 import time
 import traceback
 import requests
+from typing import Optional, Any, Dict, cast
 
 # Load environment variables from .env
 load_dotenv()
@@ -59,7 +61,7 @@ def keep_onedrive_token_alive():
     else:
         logging.warning("OneDrive access token keep-alive: failed to refresh token. Re-authentication may be required.")
 
-def resolve_env_vars(obj):
+def resolve_env_vars(obj: Any) -> Any:
     """
     Recursively resolve environment variable references in a config object.
     Supports ${VAR} syntax in strings.
@@ -87,10 +89,24 @@ def resolve_env_vars(obj):
     else:
         return obj
 
+
 CONFIG_PATH = os.getenv("SUSI_CONFIG", "config.yaml")
 with open(CONFIG_PATH, 'r') as f:
     raw_config = yaml.safe_load(f)
-    config = resolve_env_vars(raw_config)
+    config: Dict[str, Any] = cast(Dict[str, Any], resolve_env_vars(raw_config))
+
+# --- Runtime type check for config ---
+def _assert_valid_config_types(obj, path="config"):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            _assert_valid_config_types(v, f"{path}['{k}']")
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            _assert_valid_config_types(v, f"{path}[{i}]")
+    elif not isinstance(obj, (str, int, float, bool, type(None))):
+        raise TypeError(f"Invalid type in config at {path}: {type(obj)}")
+
+_assert_valid_config_types(config)
 
 
 # --- Robust Logging Configuration ---
@@ -257,8 +273,7 @@ def move_onedrive_file_to_processed(item: dict, config: dict) -> None:
     else:
         logging.error(f"Failed to move '{item['name']}' to '{processed_folder}': {resp.text}")
 
-
-def process_images(images: list = None, seen_ids: set = None, poster=None) -> None:
+def process_images(images: Optional[list] = None, seen_ids: Optional[set] = None, poster=None) -> None:
     """
     Process a list of images: download, extract metadata, generate caption, upload to S3, post to social platform, and notify.
 

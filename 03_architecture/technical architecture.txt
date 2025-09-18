@@ -1,0 +1,89 @@
+Technical Architecture: Social Media Automation System
+
+Overview
+--------
+This document describes the technical architecture and technology stack of the "social-media-susi" automation system. 
+The solution is designed to automate the end-to-end workflow of social media content creation, management, and publishing, with 
+a focus on extensibility, reliability, and maintainability. The architecture supports integration with multiple cloud 
+services, robust error handling, and modular workflow orchestration.
+
+Prototype and Evolution
+-----------------------
+The initial proof of concept was implemented using n8n, a low-code workflow automation tool. This allowed rapid prototyping of 
+the core workflow: monitoring a OneDrive folder, extracting image metadata, generating captions, uploading to AWS S3, and posting 
+to Instagram. While n8n provided a quick way to validate the business logic and integration feasibility, it was limited in terms 
+of extensibility, error handling, and advanced automation requirements.
+
+Based on the learnings from the prototype, the system was re-architected and fully implemented in Python, resulting in the current 
+"social-media-susi" project. This approach provides full control over the workflow, advanced error handling, and the ability to 
+scale and extend the system for future requirements (e.g., additional social platforms, AI-driven content generation, and advanced 
+scheduling).
+
+System Design
+-------------
+The system is organized into modular components, each responsible for a specific part of the workflow. The main components are:
+
+1. **Content Monitoring**
+   - Monitors a designated OneDrive folder for new images and an Excel spreadsheet for new topics.
+   - Uses Microsoft Graph API for OneDrive integration.
+
+2. **Metadata Extraction and Caption Generation**
+   - Extracts metadata (title, comments, EXIF, etc.) from images.
+   - Generates captions using both template-based and generative AI approaches (LLMs).
+
+3. **Cloud Storage Integration**
+   - Uploads images to AWS S3 for public hosting.
+   - Uses boto3 for S3 integration, with credentials managed via environment variables or IAM roles.
+
+4. **Social Media Posting**
+   - Posts content to Instagram using a dedicated module.
+   - Designed for easy extension to other platforms (LinkedIn, X, blogs) via a common interface.
+
+5. **Workflow Orchestration**
+   - Main workflow is orchestrated in Python, supporting both polling and scheduled execution (via the schedule library).
+   - Robust logging (file and console, with rotation) and error handling (with retries and notifications).
+
+6. **Notification and Error Handling**
+   - Sends confirmation and error notifications via email (SMTP or Gmail API).
+   - All errors are logged and trigger notification workflows.
+
+7. **Configuration and Extensibility**
+   - All settings are managed via YAML configuration files and environment variables (with dotenv support).
+   - Modular design allows for easy addition of new workflow steps, integrations, or platforms.
+
+8. **Testing and Validation**
+   - Automated tests cover core workflows, integrations, and error handling.
+   - Test suite is designed for both local and CI/CD execution.
+
+9. **Containerization and Deployment**
+   - The entire system is containerized using Docker, ensuring consistent environments across development, testing, and production.
+   - Prepared for CI/CD with GitHub Actions for automated builds, tests, and deployments.
+
+Technology Stack
+----------------
+- **Programming Language:** Python 3.11 (slim Docker base image)
+- **Workflow Orchestration:** Custom Python logic (main.py), schedule library
+- **Cloud Storage:** AWS S3 (boto3)
+- **Content Source:** Microsoft OneDrive (Microsoft Graph API)
+- **Social Media API:** Instagram Graph API (modular for future platforms)
+- **Email/Notification:** Gmail API and SMTP
+- **Configuration:** YAML (config.yaml), environment variables (.env, python-dotenv)
+- **Logging:** Python logging, RotatingFileHandler
+- **Testing:** pytest (with test suite in /tests)
+- **Containerization:** Docker (Dockerfile, docker-compose.yml)
+- **CI/CD:** GitHub Actions (prepared for automated build/test/deploy)
+- **Prototype Tool:** n8n (for initial proof of concept)
+
+Security and Best Practices
+--------------------------
+- Secrets and credentials are managed via environment variables and are not committed to version control.
+- The system is designed for least-privilege access to cloud resources (AWS, Microsoft, etc.).
+- Logging and error handling are implemented throughout for traceability and operational monitoring.
+
+Extensibility and Future Directions
+-----------------------------------
+- The modular architecture allows for rapid integration of new social platforms, AI models, or workflow steps.
+- The system can be extended to support additional content types (e.g., video), advanced analytics, or integration with marketing tools.
+
+This architecture ensures a robust, scalable, and maintainable solution for automated social media management, suitable for both 
+individual and organizational use cases.
