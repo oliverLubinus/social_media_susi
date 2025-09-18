@@ -108,6 +108,12 @@ def get_config() -> Dict[str, Any]:
 
 def setup_logging(config: Dict[str, Any]) -> logging.Logger:
     LOG_FILE = config[LOGGING_KEY][LOG_FILE_KEY]
+    # If the log file path is not absolute, use the default relative to project root
+    if not os.path.isabs(LOG_FILE):
+        LOG_FILE = os.path.join("04_implementation", "logs", LOG_FILE)
+    log_dir = os.path.dirname(LOG_FILE)
+    if log_dir and not os.path.exists(log_dir):
+        os.makedirs(log_dir)
     LOG_LEVEL = getattr(logging, config[LOGGING_KEY][LOG_LEVEL_KEY], logging.INFO)
     file_handler = RotatingFileHandler(LOG_FILE, maxBytes=2*1024*1024, backupCount=5)
     file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
