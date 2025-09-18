@@ -1,17 +1,19 @@
+
 """
 main.py: Main workflow and orchestration for the Susi social media agent.
 
 Features:
-    - Loads configuration and environment variables.
-    - Sets up robust logging (file + console, rotation, structured format).
+    - Loads configuration and environment variables using centralized helpers from config.py.
+    - Sets up robust logging (file + console, rotation, structured format) via config.py utilities.
     - Orchestrates Excel-driven and image-driven workflows for social media posting.
     - Handles OneDrive, S3, Instagram, and email integration.
     - Provides robust error handling, retry logic, and notification.
 
 Developer hints:
-    - All config values can be parameterized via environment variables (see .env and config.yaml).
-    - If you see logging or config errors, check your config file and environment variable resolution.
+    - All config values are loaded and type-checked via get_config() in config.py.
+    - Logging is configured using setup_logging() from config.py for consistency across modules.
     - Use the logger for all workflow steps and errors for traceability.
+    - Helper functions for config/env var resolution are now centralized in config.py.
 
 Error/warning message hints:
     - If you see 'Unknown trigger_mode', check your main() call and config.
@@ -20,9 +22,9 @@ Error/warning message hints:
 """
 
 
-from .onedrive_auth import get_access_token
+
 from dotenv import load_dotenv
-from string import Template
+from .onedrive_auth import get_access_token
 from .onedrive_monitor import list_onedrive_images, download_onedrive_image
 from . import excel_monitor
 from .metadata import extract_metadata
@@ -30,23 +32,30 @@ from .post_generator import generate_post_text
 from .social_posters.instagram import InstagramPoster
 from .email_utils import send_error_email, send_gmail
 from .services.s3 import upload_file_to_s3
-from .exceptions import OneDriveDownloadError, S3UploadError, InstagramPostError
+from .exceptions import S3UploadError, InstagramPostError
 from .news_api import fetch_news_articles
-from .genai_api import generate_instagram_post
-from .genai_api import generate_linkedin_post
-from logging.handlers import RotatingFileHandler
+from .genai_api import generate_instagram_post, generate_linkedin_post
 import logging
-import yaml
-import os
-import schedule
 import time
 import traceback
 import requests
-from typing import Optional, Any, Dict, cast
+import os
+import schedule
+from typing import Optional
+
+# Import config constants
+from .config import SCHEDULE_KEY, IMAGE_DAY_KEY, IMAGE_TIME_KEY, INSTAGRAM_DAY_KEY, INSTAGRAM_TIME_KEY, DAY_MAP
 
 # Load environment variables from .env
 load_dotenv()
 
+# --- Config and logging setup ---
+from .config import get_config, setup_logging
+
+config = get_config()
+logger = setup_logging(config)
+
+# helpers
 def keep_onedrive_token_alive():
     """
     Ensures the OneDrive access token is refreshed if needed.
@@ -60,78 +69,6 @@ def keep_onedrive_token_alive():
         logging.info("OneDrive access token keep-alive: token is valid or refreshed.")
     else:
         logging.warning("OneDrive access token keep-alive: failed to refresh token. Re-authentication may be required.")
-
-def resolve_env_vars(obj: Any) -> Any:
-    """
-    Recursively resolve environment variable references in a config object.
-    Supports ${VAR} syntax in strings.
-
-    Args:
-        obj: Any config object (dict, list, or str).
-
-    Returns:
-        The config object with all env vars resolved.
-
-    Developer hint:
-        - Use this to allow config.yaml to reference environment variables for secrets and paths.
-    """
-    if isinstance(obj, dict):
-        return {k: resolve_env_vars(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [resolve_env_vars(i) for i in obj]
-    elif isinstance(obj, str):
-        # Replace ${VAR} with environment variable if present
-        if obj.startswith('${') and obj.endswith('}'):  # full value is env var
-            var = obj[2:-1]
-            return os.getenv(var, obj)
-        # Replace any ${VAR} inside the string
-        return Template(obj).safe_substitute(os.environ)
-    else:
-        return obj
-
-
-CONFIG_PATH = os.getenv("SUSI_CONFIG", "config.yaml")
-with open(CONFIG_PATH, 'r') as f:
-    raw_config = yaml.safe_load(f)
-    config: Dict[str, Any] = cast(Dict[str, Any], resolve_env_vars(raw_config))
-
-# --- Runtime type check for config ---
-def _assert_valid_config_types(obj, path="config"):
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            _assert_valid_config_types(v, f"{path}['{k}']")
-    elif isinstance(obj, list):
-        for i, v in enumerate(obj):
-            _assert_valid_config_types(v, f"{path}[{i}]")
-    elif not isinstance(obj, (str, int, float, bool, type(None))):
-        raise TypeError(f"Invalid type in config at {path}: {type(obj)}")
-
-_assert_valid_config_types(config)
-
-
-# --- Robust Logging Configuration ---
-
-
-LOG_FILE = config['logging']['file']
-LOG_LEVEL = getattr(logging, config['logging']['level'], logging.INFO)
-LOG_FORMAT = (
-    '%(asctime)s %(levelname)s %(name)s %(funcName)s:%(lineno)d %(message)s'
-)
-
-# File handler with rotation
-file_handler = RotatingFileHandler(LOG_FILE, maxBytes=2*1024*1024, backupCount=5)
-file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-file_handler.setLevel(LOG_LEVEL)
-
-# Console handler
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-console_handler.setLevel(LOG_LEVEL)
-
-# Root logger setup
-logging.basicConfig(level=LOG_LEVEL, handlers=[file_handler, console_handler])
-
-logger = logging.getLogger("susi.main")
 
 def process_excel_topics(poster=None, dry_run=False) -> None:
     """
@@ -386,6 +323,7 @@ def process_images(images: Optional[list] = None, seen_ids: Optional[set] = None
                 body=f"Unexpected error processing {item['name']}: {e}\n\nTraceback:\n{tb}",
                 config=config
             )
+
 def send_confirmation(subject: str, body: str, config: dict) -> None:
     """
     Send a confirmation email after a successful post.
@@ -408,6 +346,7 @@ def send_confirmation(subject: str, body: str, config: dict) -> None:
             logging.error(f"Failed to send confirmation email via Gmail API: {e}")
     else:
         send_error_email(subject, body, config)
+
 def send_error(subject: str, body: str, config: dict) -> None:
     """
     Send an error notification email.
@@ -430,7 +369,6 @@ def send_error(subject: str, body: str, config: dict) -> None:
             logging.error(f"Failed to send error email via Gmail API: {e}")
     else:
         send_error_email(subject, body, config)
-
 
 def main(trigger_mode: str = "polling") -> None:
     """
@@ -455,33 +393,23 @@ def main(trigger_mode: str = "polling") -> None:
             process_excel_topics()
             time.sleep(poll_interval)
     elif trigger_mode == "schedule":
-        # Schedule image workflow on Tuesday at 9am
-        img_day = config['schedule'].get('image_day', 'Tuesday').lower()
-        img_time = config['schedule'].get('image_time', '09:00')
-        # Schedule Instagram post (Excel workflow) on Thursday at 9am
-        insta_day = config['schedule'].get('instagram_day', 'Thursday').lower()
-        insta_time = config['schedule'].get('instagram_time', '09:00')
+        # Schedule image workflow on configured day/time
+        img_day = config[SCHEDULE_KEY].get(IMAGE_DAY_KEY, 'Tuesday').lower()
+        img_time = config[SCHEDULE_KEY].get(IMAGE_TIME_KEY, '09:00')
+        # Schedule Instagram post (Excel workflow) on configured day/time
+        post_day = config[SCHEDULE_KEY].get(INSTAGRAM_DAY_KEY, 'Thursday').lower()
+        post_time = config[SCHEDULE_KEY].get(INSTAGRAM_TIME_KEY, '09:00')
 
-        # Map day string to schedule method
-        day_map = {
-            'monday': schedule.every().monday,
-            'tuesday': schedule.every().tuesday,
-            'wednesday': schedule.every().wednesday,
-            'thursday': schedule.every().thursday,
-            'friday': schedule.every().friday,
-            'saturday': schedule.every().saturday,
-            'sunday': schedule.every().sunday,
-        }
-        if img_day in day_map:
-            day_map[img_day].at(img_time).do(process_images)
+        if img_day in DAY_MAP:
+            DAY_MAP[img_day].at(img_time).do(process_images)
         else:
             logging.error(f"Unknown image workflow schedule day: {img_day}")
             raise ValueError(f"Unknown image workflow schedule day: {img_day}")
-        if insta_day in day_map:
-            day_map[insta_day].at(insta_time).do(process_excel_topics)
+        if post_day in DAY_MAP:
+            DAY_MAP[post_day].at(post_time).do(process_excel_topics)
         else:
-            logging.error(f"Unknown Instagram workflow schedule day: {insta_day}")
-            raise ValueError(f"Unknown Instagram workflow schedule day: {insta_day}")
+            logging.error(f"Unknown Instagram workflow schedule day: {post_day}")
+            raise ValueError(f"Unknown Instagram workflow schedule day: {post_day}")
         logging.info("Scheduler started.")
         while True:
             schedule.run_pending()

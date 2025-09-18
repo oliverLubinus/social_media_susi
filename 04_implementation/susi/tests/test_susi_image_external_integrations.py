@@ -40,8 +40,10 @@ class TestS3Upload(unittest.TestCase):
         bucket = 'test-bucket'
         region = 'eu-central-1'
         url = upload_file_to_s3(file_path, bucket, aws_access_key_id='key', aws_secret_access_key='secret', region_name=region)
-        self.assertIn(bucket, url)
-        self.assertIn(region, url)
+        self.assertIsNotNone(url)
+        if url is not None:
+            self.assertIn(bucket, url)
+            self.assertIn(region, url)
 
     @patch('susi.services.s3.boto3.client')
     def test_upload_file_to_s3_failure(self, mock_boto_client):

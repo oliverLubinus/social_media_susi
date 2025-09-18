@@ -17,7 +17,7 @@ Error/warning message hints:
 	- For new workflow logic, update or add tests to match expected behavior.
 """
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 from susi.main import process_excel_topics
 from unittest.mock import patch as upatch
 import sys
@@ -71,24 +71,24 @@ class TestExcelIntegration(unittest.TestCase):
 		# Assert
 		mock_get_rows.assert_called_once()
 		mock_news.assert_has_calls([
-			unittest.mock.call('AI in Healthcare', 'Doctors'),
-			unittest.mock.call('AI in Finance', 'Bankers')
+			call('AI in Healthcare', 'Doctors'),
+			call('AI in Finance', 'Bankers')
 		])
 		mock_genai_insta.assert_has_calls([
-			unittest.mock.call('AI in Healthcare', 'Doctors', [{'title': 'AI revolutionizes diagnosis', 'description': 'AI is helping doctors...'}]),
-			unittest.mock.call('AI in Finance', 'Bankers', [{'title': 'AI revolutionizes diagnosis', 'description': 'AI is helping doctors...'}])
+			call('AI in Healthcare', 'Doctors', [{'title': 'AI revolutionizes diagnosis', 'description': 'AI is helping doctors...'}]),
+			call('AI in Finance', 'Bankers', [{'title': 'AI revolutionizes diagnosis', 'description': 'AI is helping doctors...'}])
 		])
 		mock_write_insta.assert_has_calls([
-			unittest.mock.call(0, "Instagram post about AI in Healthcare for doctors."),
-			unittest.mock.call(1, "Instagram post about AI in Healthcare for doctors.")
+			call(0, "Instagram post about AI in Healthcare for doctors."),
+			call(1, "Instagram post about AI in Healthcare for doctors.")
 		])
 		mock_write_linkedin.assert_has_calls([
-			unittest.mock.call(0, "LinkedIn post (mocked)"),
-			unittest.mock.call(1, "LinkedIn post (mocked)")
+			call(0, "LinkedIn post (mocked)"),
+			call(1, "LinkedIn post (mocked)")
 		])
 		mock_mark_processed.assert_has_calls([
-			unittest.mock.call(0),
-			unittest.mock.call(1)
+			call(0),
+			call(1)
 		])
 		assert mock_send_confirmation.call_count == 2
 		mock_send_error.assert_not_called()

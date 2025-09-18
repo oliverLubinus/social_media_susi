@@ -14,9 +14,6 @@ Error/warning message hints:
     - If you see empty captions, check for missing or empty metadata fields.
 """
 
-import os
-import logging
-from .metadata import extract_metadata
 from typing import Dict
 
 def generate_post_text(metadata: Dict[str, str], template: str) -> str:

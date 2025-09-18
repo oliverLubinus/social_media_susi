@@ -23,7 +23,7 @@ import requests
 from .retry_utils import retry
 from typing import Dict
 
-@retry(Exception, tries=3, delay=2, backoff=2, logger=logging)
+@retry(Exception, tries=3, delay=2, backoff=2, logger=logging.getLogger("susi.main"))
 def post_to_instagram(image_url: str, caption: str, config: Dict) -> bool:
     """
     Post an image to Instagram using the Instagram Graph API.

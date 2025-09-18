@@ -11,7 +11,7 @@ import base64
 import smtplib
 import logging
 from email.mime.text import MIMEText
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep_log
 
 # Gmail API imports
@@ -22,7 +22,7 @@ from google.auth.transport.requests import Request
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
-def get_gmail_service(config: Dict = None) -> Any:
+def get_gmail_service(config: Optional[Dict] = None) -> Any:
     """
     Authenticate and return a Gmail API service client using OAuth2 credentials.
 

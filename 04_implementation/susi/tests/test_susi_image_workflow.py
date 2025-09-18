@@ -16,7 +16,7 @@ Error/warning message hints:
     - For new workflow logic, update or add tests to match expected behavior.
 """
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY
 from susi.main import process_images
 
 class TestImageWorkflow(unittest.TestCase):
@@ -72,7 +72,7 @@ class TestImageWorkflow(unittest.TestCase):
         mock_extract.assert_called_once()
         mock_generate_post.assert_called_once()
         mock_upload_s3.assert_called_once()
-        mock_poster.post.assert_called_once_with('https://bucket.s3.region.amazonaws.com/test.jpg', 'Test caption', unittest.mock.ANY)
+        mock_poster.post.assert_called_once_with('https://bucket.s3.region.amazonaws.com/test.jpg', 'Test caption', ANY)
         mock_move_processed.assert_called_once()
         mock_remove.assert_called_once_with('downloads/test.jpg')
 

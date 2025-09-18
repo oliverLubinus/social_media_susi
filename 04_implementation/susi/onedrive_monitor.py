@@ -9,7 +9,8 @@ Features:
 
 Developer hints:
     - Requires valid OneDrive OAuth2 credentials and config.yaml (or SUSI_CONFIG env var).
-    - All OneDrive API calls are retried on failure (see @retry decorator).
+    - All configuration and environment variable resolution is handled via centralized helpers in config.py.
+    - All OneDrive API calls are retried on failure (see @retry decorator) using the centralized "susi.main" logger.
     - If you see token or permission errors, check your OAuth2 setup and folder permissions.
 
 Error/warning message hints:
@@ -19,8 +20,8 @@ Error/warning message hints:
 """
 
 from datetime import datetime
+
 from dotenv import load_dotenv
-from string import Template
 from .onedrive_auth import get_access_token
 from .retry_utils import retry
 from typing import List, Dict, Any
@@ -28,46 +29,18 @@ import os
 import shutil
 import logging
 import requests
-import yaml
+
+# Use config helpers and constants
+from .config import get_config, ONEDRIVE_KEY
 
 load_dotenv()
-def resolve_env_vars(obj):
-    """
-    Recursively resolve environment variables in a config object (dict, list, or str).
+config = get_config()
 
-    Args:
-        obj: The config object (dict, list, or str) to resolve.
-
-    Returns:
-        The config object with all environment variables resolved.
-
-    Developer hints:
-        - Supports both ${VAR} and $VAR syntax in config values.
-        - Used to allow config.yaml to reference environment variables.
-    """
-    if isinstance(obj, dict):
-        return {k: resolve_env_vars(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [resolve_env_vars(i) for i in obj]
-    elif isinstance(obj, str):
-        # Support both ${VAR} and $VAR syntax
-        if obj.startswith('${') and obj.endswith('}'):
-            var = obj[2:-1]
-            return os.getenv(var, obj)
-        return Template(obj).safe_substitute(os.environ)
-    else:
-        return obj
-
-CONFIG_PATH = os.getenv("SUSI_CONFIG", "config.yaml")
-with open(CONFIG_PATH, 'r') as f:
-    raw_config = yaml.safe_load(f)
-    config = resolve_env_vars(raw_config)
-
-ONEDRIVE_FOLDER_PATH = config['onedrive']['folder']  # e.g. "/drive/root:/SusiImages"
-LOCAL_DOWNLOAD_DIR = config['onedrive'].get('local_download_dir', 'downloads')
+ONEDRIVE_FOLDER_PATH = config[ONEDRIVE_KEY]['folder']  # e.g. "/drive/root:/SusiImages"
+LOCAL_DOWNLOAD_DIR = config[ONEDRIVE_KEY].get('local_download_dir', 'downloads')
 
 
-@retry(Exception, tries=3, delay=2, backoff=2, logger=logging)
+@retry(Exception, tries=3, delay=2, backoff=2, logger=logging.getLogger("susi.main"))
 def list_onedrive_images() -> List[Dict[str, Any]]:
     """
     List image files in the configured OneDrive folder using Microsoft Graph API.
@@ -92,7 +65,7 @@ def list_onedrive_images() -> List[Dict[str, Any]]:
     return image_files
 
 
-@retry(Exception, tries=3, delay=2, backoff=2, logger=logging)
+@retry(Exception, tries=3, delay=2, backoff=2, logger=logging.getLogger("susi.main"))
 def download_onedrive_image(item: Dict[str, Any]) -> str:
     """
     Download an image file from OneDrive to the local download directory.

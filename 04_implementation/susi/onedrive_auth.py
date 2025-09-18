@@ -24,6 +24,7 @@ import os
 import msal
 import requests
 import json
+from typing import Optional
 from urllib.parse import urlencode
 from dotenv import load_dotenv
 
@@ -116,12 +117,12 @@ def get_token_from_code(auth_code: str) -> str:
         raise Exception(f"Token error: {result}")
 
 
-def get_access_token() -> str:
+def get_access_token() -> Optional[str]:
     """
     Retrieve the stored OneDrive access token from the local cache file.
 
     Returns:
-        str: The access token if present, otherwise None.
+        Optional[str]: The access token if present, otherwise None.
 
     Developer hint:
         - Automatically refreshes the token if expired (if refresh_token is available).

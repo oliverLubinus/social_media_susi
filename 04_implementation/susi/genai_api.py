@@ -20,15 +20,8 @@ Error/warning message hints:
 """
 
 from typing import Optional, List, Dict
-import os
 import requests
-
-LINKEDIN_SYSTEM_PROMPT = (
-    "You are a social media expert. Write a professional, engaging LinkedIn post for the given target group, "
-    "using the provided topic and news article summaries. The post should be longer, more detailed, and suitable for LinkedIn. "
-    "Do not mention that you are an AI or that you used news articles. Just create a natural, human-sounding post. "
-    "Respond ONLY with the LinkedIn post text, no explanations, no reasoning, no <think> or system messages."
-)
+from .config import GENAI_API_URL, SYSTEM_PROMPT, LINKEDIN_SYSTEM_PROMPT
 
 def generate_linkedin_post(content: str, target_group: Optional[str], news_articles: List[Dict]) -> str:
     """
@@ -89,22 +82,6 @@ def generate_linkedin_post(content: str, target_group: Optional[str], news_artic
         return content
     # Fallback: try 'result' or 'text' keys
     return data.get("result") or data.get("text") or "[No response from model]"
-
-
-"""
-genai_api.py: Integration for a local LLM (DeepSeek) to generate Instagram posts from news and context.
-
-Requires LOCAL_GENAI_API_URL in environment variables.
-"""
-
-GENAI_API_URL = os.getenv("LOCAL_GENAI_API_URL")
-
-SYSTEM_PROMPT = (
-    "You are a social media expert. Write an engaging Instagram post for the given target group, "
-    "using the provided topic and news article summaries. The post should be concise, friendly, and suitable for Instagram. "
-    "Do not mention that you are an AI or that you used news articles. Just create a natural, human-sounding post. "
-    "Respond ONLY with the Instagram post text, no explanations, no reasoning, no <think> or system messages."
-)
 
 
 def generate_instagram_post(content: str, target_group: Optional[str], news_articles: List[Dict]) -> str:

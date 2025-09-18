@@ -21,6 +21,7 @@ from susi.onedrive_monitor import download_onedrive_image
 from susi.metadata import extract_metadata
 import susi.post_generator
 import susi.email_utils
+import os
 
 class TestOneDriveDownload(unittest.TestCase):
     """
@@ -34,7 +35,6 @@ class TestOneDriveDownload(unittest.TestCase):
         """
         Test: download_onedrive_image returns correct local path on success.
         """
-        import os
         mock_download.return_value = os.path.normpath('downloads/test.jpg')
         mock_requests_get.return_value = MagicMock(status_code=200, content=b'fake')
         # Provide required key to avoid KeyError
