@@ -1,0 +1,31 @@
+onedrive:
+  folder: ${ONEDRIVE_IMAGES_FOLDER_PATH_NEW}
+  processed_folder: ${ONEDRIVE_IMAGES_FOLDER_PATH_PROCESSED}
+  local_download_dir: "downloads"
+instagram:
+  access_token: ${INSTAGRAM_ACCESS_TOKEN}
+  user_id: ${INSTAGRAM_USER_ID}
+schedule:
+  image_day: "Tuesday"
+  image_time: "09:00"
+  instagram_day: "Thursday"
+  instagram_time: "09:00"
+email:
+  provider: "gmail"
+  smtp_server: "smtp.gmail.com"
+  smtp_port: 587
+  username: ${GMAIL_SENDER}
+  recipient: ${GMAIL_RECIPIENT}
+  client_secret_file: ${GMAIL_SECRET_FILE}
+  token_file: ${GMAIL_TOKEN_FILE}
+template: "{title}\n\n{comment}"
+logging:
+  file: "logs/susi.log"
+  level: "INFO"
+aws:
+  s3_bucket: ${AWS_S3_BUCKET_NAME}
+  region: ${AWS_S3_BUCKET_REGION}
+  profile: ${AWS_S3_BUCKET_PROFILE}
+  access_key_id: ${AWS_ACCESS_KEY_ID}
+  secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+  s3_url_prefix: "https://${AWS_S3_BUCKET_NAME}.s3.amazonaws.com/"

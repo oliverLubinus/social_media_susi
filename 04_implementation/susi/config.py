@@ -110,7 +110,7 @@ def setup_logging(config: Dict[str, Any]) -> logging.Logger:
     LOG_FILE = config[LOGGING_KEY][LOG_FILE_KEY]
     # If the log file path is not absolute, use the default relative to project root
     if not os.path.isabs(LOG_FILE):
-        LOG_FILE = os.path.join("04_implementation", "logs", LOG_FILE)
+        LOG_FILE = os.path.join(LOG_FILE)
     log_dir = os.path.dirname(LOG_FILE)
     if log_dir and not os.path.exists(log_dir):
         os.makedirs(log_dir)
