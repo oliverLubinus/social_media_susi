@@ -20,8 +20,35 @@ Error/warning message hints:
 
 import logging
 import requests
+import time
 from .retry_utils import retry
 from typing import Dict
+
+@retry(Exception, tries=3, delay=2, backoff=2, logger=logging.getLogger("susi.main"))
+def wait_for_media_ready(creation_id: str, access_token: str, max_wait: int = 60, poll_interval: int = 5) -> bool:
+    """
+    Poll the Instagram API for media processing status until ready or timeout.
+    Returns True if ready, False if error or timeout.
+    """
+    url = f"https://graph.facebook.com/v19.0/{creation_id}?fields=status_code&access_token={access_token}"
+    waited = 0
+    while waited < max_wait:
+        try:
+            resp = requests.get(url)
+            data = resp.json()
+            status = data.get("status_code")
+            if status == "FINISHED":
+                return True
+            elif status == "ERROR":
+                logging.error(f"Instagram media processing failed: {data}")
+                return False
+        except Exception as e:
+            logging.error(f"Error polling Instagram media status: {e}")
+        time.sleep(poll_interval)
+        waited += poll_interval
+    logging.error("Timeout waiting for Instagram media to be ready.")
+    return False
+
 
 @retry(Exception, tries=3, delay=2, backoff=2, logger=logging.getLogger("susi.main"))
 def post_to_instagram(image_url: str, caption: str, config: Dict) -> bool:
@@ -70,7 +97,12 @@ def post_to_instagram(image_url: str, caption: str, config: Dict) -> bool:
         logging.error(f"No creation_id returned from Instagram: {resp.text}")
         return False
 
-    # Step 2: Publish media object
+    # Step 2: Poll for media readiness
+    if not wait_for_media_ready(creation_id, access_token, max_wait=60, poll_interval=5):
+        logging.error(f"Media object {creation_id} not ready for publishing after waiting.")
+        return False
+
+    # Step 3: Publish media object
     publish_url = f"https://graph.facebook.com/v19.0/{user_id}/media_publish"
     payload = {
         'creation_id': creation_id,

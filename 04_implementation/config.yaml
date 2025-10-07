@@ -7,9 +7,9 @@ instagram:
   user_id: ${INSTAGRAM_USER_ID}
 schedule:
   image_day: "Tuesday"
-  image_time: "09:00"
+  image_time: "07:00"
   instagram_day: "Thursday"
-  instagram_time: "09:00"
+  instagram_time: "07:00"
 email:
   provider: "gmail"
   smtp_server: "smtp.gmail.com"
